@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
 
-    void openVideo(int argc, char **argv);
+    void openVideo(const char *leftFilename=NULL, const char *rightFilename=NULL);
 
     ~MainWindow();
 

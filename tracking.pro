@@ -25,8 +25,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # background subtraction
 INCLUDEPATH += /home/jing/Documents/TableTennis/TableTennis/BgSubtractor/include
 LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor -lbgsubtract
-#LIBS += /home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor/libbgsubtract.a
 
+# CNN tracking
+INCLUDEPATH += /home/jing/Documents/CNN_tabletennis/src/include
+LIBS += -L/home/jing/Documents/CNN_tabletennis/build/src -ltracker
+
+# CAFFE
+INCLUDEPATH += /home/jing/caffe/include
+INCLUDEPATH += /home/jing/caffe/build_cmake/include
+INCLUDEPATH += /usr/local/cuda-8.0/include
+
+LIBS += -L/usr/local/lib -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib \
+    -lcudart -lcublas -lcurand -lglog -lgflags -lprotobuf -lleveldb -lsnappy \
+    -llmdb -lboost_system -lm -lboost_thread -lstdc++ -lcblas -latlas #-lcaffe
+
+# OPENCV
 INCLUDEPATH += /usr/local/include/opencv
 INCLUDEPATH += /usr/local/include/opencv2
 

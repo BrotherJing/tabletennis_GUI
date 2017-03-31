@@ -4,6 +4,9 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include "Codebook.h"
+#include "NNTracker.h"
+
 #include "config.h"
 #include "tools.h"
 
@@ -25,14 +28,14 @@ MainWindow::~MainWindow()
     capRight.release();
 }
 
-void MainWindow::openVideo(int argc, char **argv){
-    if(argc>2){
-        printf("%s %s", argv[1], argv[2]);
-        capLeft.open(argv[1]);
-        capRight.open(argv[2]);
-    }else{
+void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
+    if(leftFilename==NULL||rightFilename==NULL){
         capLeft.open(0);
         capRight.open(1);
+    }else{
+        printf("%s %s", leftFilename, rightFilename);
+        capLeft.open(leftFilename);
+        capRight.open(rightFilename);
     }
     capLeft>>frameLeft;
     capRight>>frameRight;
