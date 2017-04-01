@@ -30,6 +30,10 @@ LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor -lbgsu
 INCLUDEPATH += /home/jing/Documents/CNN_tabletennis/src/include
 LIBS += -L/home/jing/Documents/CNN_tabletennis/build/src -ltracker
 
+# LSTM trajectory prediction
+INCLUDEPATH += /home/jing/Documents/RNN_tabletennis/src/include
+LIBS += -L/home/jing/Documents/RNN_tabletennis/src/build -ltrajpred
+
 # CAFFE
 INCLUDEPATH += /home/jing/caffe/include
 INCLUDEPATH += /home/jing/caffe/build_cmake/include

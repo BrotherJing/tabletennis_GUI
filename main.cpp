@@ -6,6 +6,7 @@
 #include <highgui.h>
 
 #include "Classifier.h"
+#include "TrajPredict.h"
 
 using namespace cv;
 
@@ -35,19 +36,29 @@ int main(int argc, char *argv[])
                                     QCoreApplication::translate("main", ".binaryproto mean file"),
                                     QCoreApplication::translate("main", "mean"));
     commandLineParser.addOption(cnnMeanFileOption);
+    QCommandLineOption rnnGraphFileOption("graph",
+                                    QCoreApplication::translate("main", ".pb LSTM model file"),
+                                    QCoreApplication::translate("main", "graph"));
+    commandLineParser.addOption(rnnGraphFileOption);
     commandLineParser.process(QCoreApplication::arguments());
 
     MainWindow w;
     if(!commandLineParser.isSet(cnnModelFileOption)||
             !commandLineParser.isSet(cnnWeightsFileOption)||
-            !commandLineParser.isSet(cnnMeanFileOption)){
-        std::cerr<<"please specify some files required by the caffe model"<<std::endl;
+            !commandLineParser.isSet(cnnMeanFileOption)||
+            !commandLineParser.isSet(rnnGraphFileOption)){
+        std::cerr<<"please specify some files required by the NN model"<<std::endl;
         return -1;
     }
     QString model = commandLineParser.value(cnnModelFileOption);
     QString weights = commandLineParser.value(cnnWeightsFileOption);
     QString mean = commandLineParser.value(cnnMeanFileOption);
     Classifier classifier(model.toStdString(), weights.toStdString(), mean.toStdString());
+    w.initTracker(classifier);
+
+    QString graph = commandLineParser.value(rnnGraphFileOption);
+    TrajPredict trajPredict(graph.toStdString());
+
     if(commandLineParser.isSet(leftCameraOption)&&commandLineParser.isSet(rightCameraOption)){
         QString left = commandLineParser.value(leftCameraOption);
         QString right = commandLineParser.value(rightCameraOption);

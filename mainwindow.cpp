@@ -14,7 +14,9 @@ using namespace cv;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    trackLeft(NULL),
+    trackRight(NULL)
 {
     ui->setupUi(this);
     ui->label->setScaledContents(true);
@@ -26,6 +28,8 @@ MainWindow::~MainWindow()
     delete ui;
     capLeft.release();
     capRight.release();
+    //if(trackLeft!=NULL)delete trackLeft;
+    //if(trackRight!=NULL)delete trackRight;
 }
 
 void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
@@ -51,19 +55,40 @@ void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
     bgRight = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
 }
 
+void MainWindow::initTracker(Classifier &classifier){
+    if(trackLeft!=NULL||trackRight!=NULL){
+        printf("CNN tracker already initialized!\n");
+        return;
+    }
+    trackLeft = new NNTracker(classifier);
+    trackRight = new NNTracker(classifier);
+}
+
 void MainWindow::nextFrame(){
     capLeft>>frameLeft;
     capRight>>frameRight;
     if(!frameLeft.empty()&&!frameRight.empty()){
         cv::resize(frameLeft, temp, temp.size());
         cvtColor(temp, temp2, CV_BGR2YCrCb);
-        bgLeft->process(temp2, temp);
+        if(bgLeft->process(temp2)){
+            float prob;
+            Rect bbox = Rect(0,0,0,0);
+            if(trackLeft->track(temp, (Rect*)bgLeft->bboxes, bgLeft->numComponents, &prob, &bbox)){
+                rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
+            }
+        }
         imageLeft = Mat2QImage(temp);
         ui->label->setPixmap(QPixmap::fromImage(imageLeft));
 
         cv::resize(frameRight, temp, temp.size());
         cvtColor(temp, temp2, CV_BGR2YCrCb);
-        bgRight->process(temp2, temp);
+        if(bgRight->process(temp2)){
+            float prob;
+            Rect bbox = Rect(0,0,0,0);
+            if(trackRight->track(temp, (Rect*)bgRight->bboxes, bgRight->numComponents, &prob, &bbox)){
+                rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
+            }
+        }
         imageRight = Mat2QImage(temp);
         ui->label_2->setPixmap(QPixmap::fromImage(imageRight));
     }
