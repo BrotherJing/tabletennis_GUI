@@ -37,6 +37,17 @@ find_library(Codebook_LIBRARY
         HINTS
         /home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor)
 
+# Find reconstruct 3D library
+find_path(Rec3D_INCLUDE_DIR
+	Reconstruct.h
+        HINTS
+        /home/jing/Documents/TableTennis/TableTennis/Reconstruct3D/include)
+
+find_library(Rec3D_LIBRARY
+	rec3d
+        HINTS
+        /home/jing/Documents/TableTennis/TableTennis/build/Reconstruct3D)
+
 # Find CNN tracker library
 find_path(Tracker_INCLUDE_DIR
 	NNTracker.h
@@ -47,7 +58,6 @@ find_library(Tracker_LIBRARY
 	tracker
         HINTS
         /home/jing/Documents/CNN_tabletennis/build/src)
-
 
 # find LSTM trajectory prediction library
 find_path(Trajpred_INCLUDE_DIR
@@ -60,12 +70,12 @@ find_library(Trajpred_LIBRARY
         HINTS
         /home/jing/Documents/RNN_tabletennis/src/build)
 
-include_directories(${Codebook_INCLUDE_DIR} ${Tracker_INCLUDE_DIR} ${Trajpred_INCLUDE_DIR})
+include_directories(${Codebook_INCLUDE_DIR} ${Rec3D_INCLUDE_DIR} ${Tracker_INCLUDE_DIR} ${Trajpred_INCLUDE_DIR})
 
 # Tell CMake to create the helloworld executable
 add_executable(tracking main.cpp mainwindow.cpp tools.cpp)
 
 # Use the Widgets module from Qt 5.
-target_link_libraries(tracking Qt5::Widgets ${OpenCV_LIBS} ${Caffe_LIBRARIES} ${Codebook_LIBRARY} ${Tracker_LIBRARY} ${Trajpred_LIBRARY} ${TensorFlow_LIBRARIES})
+target_link_libraries(tracking Qt5::Widgets ${OpenCV_LIBS} ${Caffe_LIBRARIES} ${Codebook_LIBRARY}  ${Rec3D_LIBRARY} ${Tracker_LIBRARY} ${Trajpred_LIBRARY} ${TensorFlow_LIBRARIES})
 
 #remember to add TensorFlow_LIBRARIES here! otherwise error adding symbols: DSO missing from command line

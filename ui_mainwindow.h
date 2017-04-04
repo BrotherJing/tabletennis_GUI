@@ -33,10 +33,10 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QPushButton *playButton;
     QPushButton *pauseButton;
-    QWidget *widget;
+    QWidget *layoutWidget;
     QHBoxLayout *horizontalLayout;
-    QLabel *label_2;
     QLabel *label;
+    QLabel *label_2;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -66,18 +66,18 @@ public:
 
         horizontalLayout_2->addWidget(pauseButton);
 
-        widget = new QWidget(centralWidget);
-        widget->setObjectName(QStringLiteral("widget"));
-        widget->setGeometry(QRect(0, 0, 690, 260));
-        horizontalLayout = new QHBoxLayout(widget);
+        layoutWidget = new QWidget(centralWidget);
+        layoutWidget->setObjectName(QStringLiteral("layoutWidget"));
+        layoutWidget->setGeometry(QRect(0, 0, 690, 260));
+        horizontalLayout = new QHBoxLayout(layoutWidget);
         horizontalLayout->setSpacing(30);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
         horizontalLayout->setSizeConstraint(QLayout::SetNoConstraint);
         horizontalLayout->setContentsMargins(10, 10, 10, 10);
-        label_2 = new QLabel(widget);
-        label_2->setObjectName(QStringLiteral("label_2"));
-        label_2->setMinimumSize(QSize(320, 240));
+        label = new QLabel(layoutWidget);
+        label->setObjectName(QStringLiteral("label"));
+        label->setMinimumSize(QSize(320, 240));
         QPalette palette;
         QBrush brush(QColor(136, 138, 133, 255));
         brush.setStyle(Qt::SolidPattern);
@@ -86,20 +86,20 @@ public:
         QBrush brush1(QColor(239, 235, 231, 255));
         brush1.setStyle(Qt::SolidPattern);
         palette.setBrush(QPalette::Disabled, QPalette::Base, brush1);
-        label_2->setPalette(palette);
+        label->setPalette(palette);
 
-        horizontalLayout->addWidget(label_2);
+        horizontalLayout->addWidget(label);
 
-        label = new QLabel(widget);
-        label->setObjectName(QStringLiteral("label"));
-        label->setMinimumSize(QSize(320, 240));
+        label_2 = new QLabel(layoutWidget);
+        label_2->setObjectName(QStringLiteral("label_2"));
+        label_2->setMinimumSize(QSize(320, 240));
         QPalette palette1;
         palette1.setBrush(QPalette::Active, QPalette::Base, brush);
         palette1.setBrush(QPalette::Inactive, QPalette::Base, brush);
         palette1.setBrush(QPalette::Disabled, QPalette::Base, brush1);
-        label->setPalette(palette1);
+        label_2->setPalette(palette1);
 
-        horizontalLayout->addWidget(label);
+        horizontalLayout->addWidget(label_2);
 
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
@@ -123,8 +123,8 @@ public:
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", Q_NULLPTR));
         playButton->setText(QApplication::translate("MainWindow", "Play", Q_NULLPTR));
         pauseButton->setText(QApplication::translate("MainWindow", "Pause", Q_NULLPTR));
-        label_2->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
         label->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
+        label_2->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
     } // retranslateUi
 
 };

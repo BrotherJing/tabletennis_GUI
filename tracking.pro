@@ -26,6 +26,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 INCLUDEPATH += /home/jing/Documents/TableTennis/TableTennis/BgSubtractor/include
 LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor -lbgsubtract
 
+# 3d reconstruction
+INCLUDEPATH += /home/jing/Documents/TableTennis/TableTennis/Reconstruct3D/include
+LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/Reconstruct3D -lrec3d
+
 # CNN tracking
 INCLUDEPATH += /home/jing/Documents/CNN_tabletennis/src/include
 LIBS += -L/home/jing/Documents/CNN_tabletennis/build/src -ltracker

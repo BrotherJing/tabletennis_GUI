@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.2.1, 2017-04-01T15:12:55. -->
+<!-- Written by QtCreator 4.2.1, 2017-04-04T13:51:39. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -306,7 +306,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/jing/Documents/QtProjects/tracking/tracking.pro</value>
     <value type="bool" key="QmakeProjectManager.QmakeRunConfiguration.UseLibrarySearchPath">true</value>
-    <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments">--left  /media/jing/0C4F0EAC0C4F0EAC/video/0001L.MP4 --right /media/jing/0C4F0EAC0C4F0EAC/video/0001R.MP4</value>
+    <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments">/home/jing/Documents/TrackingDataGenerator/build/0012/0012L_aligned.avi /home/jing/Documents/TrackingDataGenerator/build/0012/0012R_aligned.avi</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">tracking.pro</value>
     <value type="bool" key="Qt4ProjectManager.Qt4RunConfiguration.UseDyldImageSuffix">false</value>
     <value type="bool" key="Qt4ProjectManager.Qt4RunConfiguration.UseTerminal">true</value>

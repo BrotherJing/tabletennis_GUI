@@ -40,14 +40,17 @@ int main(int argc, char *argv[])
                                     QCoreApplication::translate("main", ".pb LSTM model file"),
                                     QCoreApplication::translate("main", "graph"));
     commandLineParser.addOption(rnnGraphFileOption);
+    QCommandLineOption cameraMatrixDirOption("camera_matrix_dir",
+                                    QCoreApplication::translate("main", "directory that contains camera matrices"),
+                                    QCoreApplication::translate("main", "matrix_dir"));
+    commandLineParser.addOption(cameraMatrixDirOption);
     commandLineParser.process(QCoreApplication::arguments());
 
     MainWindow w;
     if(!commandLineParser.isSet(cnnModelFileOption)||
             !commandLineParser.isSet(cnnWeightsFileOption)||
-            !commandLineParser.isSet(cnnMeanFileOption)||
-            !commandLineParser.isSet(rnnGraphFileOption)){
-        std::cerr<<"please specify some files required by the NN model"<<std::endl;
+            !commandLineParser.isSet(cnnMeanFileOption)){
+        std::cerr<<"please specify some files required by the CNN model"<<std::endl;
         return -1;
     }
     QString model = commandLineParser.value(cnnModelFileOption);
@@ -56,8 +59,19 @@ int main(int argc, char *argv[])
     Classifier classifier(model.toStdString(), weights.toStdString(), mean.toStdString());
     w.initTracker(classifier);
 
+    if(!commandLineParser.isSet(rnnGraphFileOption)){
+        std::cerr<<"please specify some files required by the LSTM model"<<std::endl;
+        return -1;
+    }
     QString graph = commandLineParser.value(rnnGraphFileOption);
     TrajPredict trajPredict(graph.toStdString());
+
+    if(!commandLineParser.isSet(cameraMatrixDirOption)){
+        std::cerr<<"please specify directory that contains the camera matrices"<<std::endl;
+        return -1;
+    }
+    QString cameraMatrixDir = commandLineParser.value(cameraMatrixDirOption);
+    w.loadCameraMatrices(cameraMatrixDir.toStdString());
 
     if(commandLineParser.isSet(leftCameraOption)&&commandLineParser.isSet(rightCameraOption)){
         QString left = commandLineParser.value(leftCameraOption);

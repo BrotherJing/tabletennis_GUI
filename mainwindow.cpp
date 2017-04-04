@@ -5,6 +5,7 @@
 #include <highgui.h>
 
 #include "Codebook.h"
+#include "Reconstruct.h"
 #include "NNTracker.h"
 
 #include "config.h"
@@ -12,11 +13,14 @@
 
 using namespace cv;
 
+const int MainWindow::SCALE = 2;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     trackLeft(NULL),
-    trackRight(NULL)
+    trackRight(NULL),
+    reconstruct(NULL)
 {
     ui->setupUi(this);
     ui->label->setScaledContents(true);
@@ -30,6 +34,10 @@ MainWindow::~MainWindow()
     capRight.release();
     //if(trackLeft!=NULL)delete trackLeft;
     //if(trackRight!=NULL)delete trackRight;
+}
+
+void MainWindow::loadCameraMatrices(const string camera_matrix_path){
+    reconstruct = new Reconstruct(camera_matrix_path);
 }
 
 void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
@@ -47,8 +55,8 @@ void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
         return;
     }
     Size szSmall = frameLeft.size();
-    szSmall.width = szSmall.width/2;
-    szSmall.height = szSmall.height/2;
+    szSmall.width = szSmall.width/SCALE;
+    szSmall.height = szSmall.height/SCALE;
     temp = Mat(szSmall, frameLeft.type());
     temp2 = Mat(szSmall, frameLeft.type());
     bgLeft = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
@@ -67,14 +75,18 @@ void MainWindow::initTracker(Classifier &classifier){
 void MainWindow::nextFrame(){
     capLeft>>frameLeft;
     capRight>>frameRight;
+    bool found = false;
+    Point left ,right;
     if(!frameLeft.empty()&&!frameRight.empty()){
         cv::resize(frameLeft, temp, temp.size());
         cvtColor(temp, temp2, CV_BGR2YCrCb);
         if(bgLeft->process(temp2)){
             float prob;
             Rect bbox = Rect(0,0,0,0);
-            if(trackLeft->track(temp, (Rect*)bgLeft->bboxes, bgLeft->numComponents, &prob, &bbox)){
+            found = trackLeft->track(temp, (Rect*)bgLeft->bboxes, bgLeft->numComponents, &prob, &bbox);
+            if(found){
                 rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
+                left = Point(bbox.x*SCALE+bbox.width*SCALE/2, bbox.y*SCALE+bbox.height*SCALE/2);
             }
         }
         imageLeft = Mat2QImage(temp);
@@ -85,12 +97,18 @@ void MainWindow::nextFrame(){
         if(bgRight->process(temp2)){
             float prob;
             Rect bbox = Rect(0,0,0,0);
-            if(trackRight->track(temp, (Rect*)bgRight->bboxes, bgRight->numComponents, &prob, &bbox)){
+            found &= trackRight->track(temp, (Rect*)bgRight->bboxes, bgRight->numComponents, &prob, &bbox);
+            if(found){
                 rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
+                right = Point(bbox.x*SCALE+bbox.width*SCALE/2, bbox.y*SCALE+bbox.height*SCALE/2);
             }
         }
         imageRight = Mat2QImage(temp);
         ui->label_2->setPixmap(QPixmap::fromImage(imageRight));
+        if(found){
+            CvPoint3D32f coord_world = reconstruct->uv2xyz(left, right);
+            printf("%f, %f, %f\n", coord_world.x, coord_world.y, coord_world.z);
+        }
     }
 }
 

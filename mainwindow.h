@@ -7,6 +7,7 @@
 #include <highgui.h>
 
 #include "Codebook.h"
+#include "Reconstruct.h"
 #include "NNTracker.h"
 
 using namespace cv;
@@ -24,6 +25,8 @@ public:
 
     void openVideo(const char *leftFilename=NULL, const char *rightFilename=NULL);
 
+    void loadCameraMatrices(const string camera_matrix_path);
+
     void initTracker(Classifier &classifier);
 
     ~MainWindow();
@@ -36,6 +39,7 @@ private slots:
     void nextFrame();
 
 private:
+    static const int SCALE;
 
     Ui::MainWindow *ui;
     VideoCapture capLeft, capRight;
@@ -44,6 +48,7 @@ private:
 
     BgSubtractor *bgLeft, *bgRight;
     NNTracker *trackLeft, *trackRight;
+    Reconstruct *reconstruct;
 
     QImage imageLeft, imageRight;
     QTimer *timer;
