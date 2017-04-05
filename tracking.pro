@@ -55,10 +55,12 @@ LIBS += -L/usr/local/lib/ -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    tools.cpp
+    tools.cpp \
+    pingpongtablearea.cpp
 
 HEADERS  += mainwindow.h \
     tools.h \
-    config.h
+    config.h \
+    pingpongtablearea.h
 
 FORMS    += mainwindow.ui
