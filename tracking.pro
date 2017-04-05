@@ -25,8 +25,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # background subtraction
 INCLUDEPATH += /home/jing/Documents/TableTennis/TableTennis/BgSubtractor/include
 LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor -lbgsubtract
-#LIBS += /home/jing/Documents/TableTennis/TableTennis/build/BgSubtractor/libbgsubtract.a
 
+# 3d reconstruction
+INCLUDEPATH += /home/jing/Documents/TableTennis/TableTennis/Reconstruct3D/include
+LIBS += -L/home/jing/Documents/TableTennis/TableTennis/build/Reconstruct3D -lrec3d
+
+# CNN tracking
+INCLUDEPATH += /home/jing/Documents/CNN_tabletennis/src/include
+LIBS += -L/home/jing/Documents/CNN_tabletennis/build/src -ltracker
+
+# LSTM trajectory prediction
+INCLUDEPATH += /home/jing/Documents/RNN_tabletennis/src/include
+LIBS += -L/home/jing/Documents/RNN_tabletennis/src/build -ltrajpred
+
+# CAFFE
+INCLUDEPATH += /home/jing/caffe/include
+INCLUDEPATH += /home/jing/caffe/build_cmake/include
+INCLUDEPATH += /usr/local/cuda-8.0/include
+
+LIBS += -L/usr/local/lib -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib \
+    -lcudart -lcublas -lcurand -lglog -lgflags -lprotobuf -lleveldb -lsnappy \
+    -llmdb -lboost_system -lm -lboost_thread -lstdc++ -lcblas -latlas #-lcaffe
+
+# OPENCV
 INCLUDEPATH += /usr/local/include/opencv
 INCLUDEPATH += /usr/local/include/opencv2
 
@@ -34,10 +55,12 @@ LIBS += -L/usr/local/lib/ -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    tools.cpp
+    tools.cpp \
+    pingpongtablearea.cpp
 
 HEADERS  += mainwindow.h \
     tools.h \
-    config.h
+    config.h \
+    pingpongtablearea.h
 
 FORMS    += mainwindow.ui
