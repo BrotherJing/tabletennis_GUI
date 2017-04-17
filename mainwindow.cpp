@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 #include "pingpongtablearea.h"
 
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
 
 #include "Codebook.h"
 #include "Reconstruct.h"

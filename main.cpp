@@ -2,8 +2,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
 
 #include "Classifier.h"
 #include "TrajPredict.h"

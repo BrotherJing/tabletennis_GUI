@@ -6,7 +6,7 @@
 #include <QPen>
 #include <QPixmap>
 
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 class PingPongTableArea : public QWidget
 {
