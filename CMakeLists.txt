@@ -73,7 +73,7 @@ find_library(Trajpred_LIBRARY
 include_directories(${Codebook_INCLUDE_DIR} ${Rec3D_INCLUDE_DIR} ${Tracker_INCLUDE_DIR} ${Trajpred_INCLUDE_DIR})
 
 # Tell CMake to create the helloworld executable
-add_executable(tracking main.cpp mainwindow.cpp tools.cpp pingpongtablearea.cpp)
+add_executable(tracking main.cpp mainwindow.cpp tools.cpp pingpongtablearea.cpp ballprops.cpp)
 
 # Use the Widgets module from Qt 5.
 target_link_libraries(tracking Qt5::Widgets ${OpenCV_LIBS} ${Caffe_LIBRARIES} ${Codebook_LIBRARY}  ${Rec3D_LIBRARY} ${Tracker_LIBRARY} ${Trajpred_LIBRARY} ${TensorFlow_LIBRARIES})

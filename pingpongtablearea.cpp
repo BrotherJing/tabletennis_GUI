@@ -47,6 +47,8 @@ void PingPongTableArea::paintEvent(QPaintEvent *event){
         painter.setPen(QPen(Qt::red, 8, Qt::PenStyle(Qt::SolidLine), Qt::PenCapStyle(Qt::RoundCap)));
         painter.drawPoint(landingPoint);
     }
+    painter.setPen(QPen(Qt::yellow, 8, Qt::PenStyle(Qt::SolidLine), Qt::PenCapStyle(Qt::RoundCap)));
+    painter.drawPoint(predictLandingPoint);
 }
 
 void PingPongTableArea::setCurrentPoint(QPoint point){
@@ -71,4 +73,11 @@ void PingPongTableArea::setLandingPoint(CvPoint3D32f point){
     int x = point.y/SCALE;
     int y = (ORIGIN_HEIGHT - point.x)/SCALE;
     setLandingPoint(QPoint(x,y));
+}
+
+void PingPongTableArea::setPredictLandingPoint(CvPoint3D32f point){
+    int x = point.y/SCALE;
+    int y = (ORIGIN_HEIGHT - point.x)/SCALE;
+    predictLandingPoint = QPoint(x,y);
+    update();
 }

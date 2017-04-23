@@ -24,6 +24,7 @@ public:
     void setCurrentPoint(CvPoint3D32f point);
     void setLandingPoint(QPoint point);
     void setLandingPoint(CvPoint3D32f point);
+    void setPredictLandingPoint(CvPoint3D32f point);
 signals:
 
 public slots:
@@ -36,7 +37,7 @@ private:
     QBrush brush;
 
     bool currentPointSet, landingPointSet;
-    QPoint currentPoint, landingPoint;
+    QPoint currentPoint, landingPoint, predictLandingPoint;
 };
 
 #endif // PINGPONGTABLEAREA_H

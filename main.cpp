@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     QString graph = commandLineParser.value(rnnGraphFileOption);
-    TrajPredict trajPredict(graph.toStdString());
+    w.loadTrajPredict(graph.toStdString());
 
     if(!commandLineParser.isSet(cameraMatrixDirOption)){
         std::cerr<<"please specify directory that contains the camera matrices"<<std::endl;

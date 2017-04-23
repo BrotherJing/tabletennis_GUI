@@ -13,12 +13,14 @@
 using namespace cv;
 
 const int MainWindow::SCALE = 2;
+const int MainWindow::MAX_NO_TRACK_CNT = 10;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     //ui(new Ui::MainWindow),
     trackLeft(NULL),
     trackRight(NULL),
+    no_track_cnt(MAX_NO_TRACK_CNT),
     reconstruct(NULL)
 {
     if (objectName().isEmpty())
@@ -126,8 +128,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     label->setScaledContents(true);
     label_2->setScaledContents(true);
-
-    firstPoint = true;
 }
 
 void MainWindow::retranslateUi(){
@@ -181,6 +181,41 @@ void MainWindow::initTracker(Classifier &classifier){
     }
     trackLeft = new NNTracker(classifier);
     trackRight = new NNTracker(classifier);
+    trackLeft->setProbThresh(0.4f);
+    trackRight->setProbThresh(0.4f);
+}
+
+void MainWindow::loadTrajPredict(const string graph){
+    trajPredict = new TrajPredict(graph);
+}
+
+bool MainWindow::_track(cv::Mat frame, bool left, Point *pt, bool draw){
+    cv::resize(frame, temp, temp.size());
+    cvtColor(temp, temp2, CV_BGR2YCrCb);
+    bool success;
+    float prob;
+    Rect bbox;
+    if(left){
+        success = bgLeft->process(temp2) &&
+                trackLeft->track_vec(temp, bgLeft->bboxes_vec, &prob, &bbox);
+    }else{
+        success = bgRight->process(temp2) &&
+                trackRight->track_vec(temp, bgRight->bboxes_vec, &prob, &bbox);
+    }
+    if(success){
+        *pt = Point(bbox.x*SCALE+bbox.width*SCALE/2, bbox.y*SCALE+bbox.height*SCALE/2);
+        if(draw){
+            rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
+        }
+    }
+    if(left){
+        imageLeft = Mat2QImage(temp);
+        label->setPixmap(QPixmap::fromImage(imageLeft));
+    }else{
+        imageRight = Mat2QImage(temp);
+        label_2->setPixmap(QPixmap::fromImage(imageRight));
+    }
+    return success;
 }
 
 void MainWindow::nextFrame(){
@@ -188,53 +223,46 @@ void MainWindow::nextFrame(){
     capRight>>frameRight;
     bool found = false;
     Point left ,right;
-    if(!frameLeft.empty()&&!frameRight.empty()){
-        cv::resize(frameLeft, temp, temp.size());
-        cvtColor(temp, temp2, CV_BGR2YCrCb);
-        if(bgLeft->process(temp2)){
-            float prob;
-            Rect bbox = Rect(0,0,0,0);
-            found = trackLeft->track(temp, (Rect*)bgLeft->bboxes, bgLeft->numComponents, &prob, &bbox);
-            if(found){
-                rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
-                left = Point(bbox.x*SCALE+bbox.width*SCALE/2, bbox.y*SCALE+bbox.height*SCALE/2);
-            }
-        }
-        imageLeft = Mat2QImage(temp);
-        label->setPixmap(QPixmap::fromImage(imageLeft));
+    if(frameLeft.empty() || frameRight.empty()){
+        return;
+    }
 
-        cv::resize(frameRight, temp, temp.size());
-        cvtColor(temp, temp2, CV_BGR2YCrCb);
-        if(bgRight->process(temp2)){
-            float prob;
-            Rect bbox = Rect(0,0,0,0);
-            found &= trackRight->track(temp, (Rect*)bgRight->bboxes, bgRight->numComponents, &prob, &bbox);
-            if(found){
-                rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
-                right = Point(bbox.x*SCALE+bbox.width*SCALE/2, bbox.y*SCALE+bbox.height*SCALE/2);
-            }
+    found = _track(frameLeft, true, &left);
+    found &= _track(frameRight, false, &right);
+
+    if(found){
+        no_track_cnt = 0;
+        CvPoint3D32f coord_world = reconstruct->uv2xyz(left, right);
+        coord_world.y = PingPongTableArea::ORIGIN_WIDTH - coord_world.y;
+        table->setCurrentPoint(coord_world);
+        ballProps.feed(coord_world);
+        if(ballProps.isRebound()){
+            table->setLandingPoint(ballProps.lastPoint());
         }
-        imageRight = Mat2QImage(temp);
-        label_2->setPixmap(QPixmap::fromImage(imageRight));
-        if(found){
-            CvPoint3D32f coord_world = reconstruct->uv2xyz(left, right);
-            printf("%f, %f, %f\n", coord_world.x, coord_world.y, coord_world.z);
-            table->setCurrentPoint(coord_world);
-            if(firstPoint){
-                firstPoint = false;
-                lastPoint = coord_world;
-                velocityZ = 0;
-            }else{
-                float velocityZ_new = coord_world.z - lastPoint.z;
-                if(velocityZ<0&&velocityZ_new>0){
-                    //is rebound
-                    table->setLandingPoint(lastPoint);
-                }
-                lastPoint = coord_world;
-                velocityZ = velocityZ_new;
-            }
+        if(ballProps.crossHalfCourt()){
+            std::cout<<"try to predict landing point"<<std::endl;
+            table->setPredictLandingPoint(_sampleUntilLanding(coord_world));
+        }
+    }else{
+        no_track_cnt++;
+        if(no_track_cnt>MAX_NO_TRACK_CNT){
+            ballProps.clearState();
+            trajPredict->clearState();
+        }else{
+            ballProps.feed(trajPredict->sample1(ballProps.lastPoint()));
         }
     }
+}
+
+CvPoint3D32f MainWindow::_sampleUntilLanding(CvPoint3D32f point){
+    //TODO:save and restore state
+    BallProps tempProps;
+    tempProps.feed(point);
+    while(!tempProps.isRebound()){
+        tempProps.feed(trajPredict->sample1(tempProps.lastPoint()));
+    }
+    std::cout<<"predict landing point: ("<<tempProps.lastPoint().x<<", "<<tempProps.lastPoint().y<<")"<<std::endl;
+    return tempProps.lastPoint();
 }
 
 void MainWindow::on_playButton_clicked()
@@ -245,8 +273,6 @@ void MainWindow::on_playButton_clicked()
     if(!frameLeft.empty()&&!frameRight.empty()){
         imageLeft = Mat2QImage(frameLeft);
         imageRight = Mat2QImage(frameRight);
-        //ui->label->setPixmap(QPixmap::fromImage(imageLeft));
-        //ui->label_2->setPixmap(QPixmap::fromImage(imageRight));
         label->setPixmap(QPixmap::fromImage(imageLeft));
         label_2->setPixmap(QPixmap::fromImage(imageRight));
         timer = new QTimer(this);

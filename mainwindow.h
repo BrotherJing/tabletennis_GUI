@@ -25,8 +25,10 @@
 #include "Codebook.h"
 #include "Reconstruct.h"
 #include "NNTracker.h"
+#include "TrajPredict.h"
 
 #include "pingpongtablearea.h"
+#include "ballprops.h"
 
 using namespace cv;
 
@@ -62,6 +64,8 @@ public:
 
     void initTracker(Classifier &classifier);
 
+    void loadTrajPredict(const string graph);
+
     ~MainWindow();
 
 private slots:
@@ -73,6 +77,10 @@ private slots:
 
 private:
     static const int SCALE;
+    static const int MAX_NO_TRACK_CNT;
+
+    bool _track(cv::Mat frame, bool left, Point *pt, bool draw=true);
+    CvPoint3D32f _sampleUntilLanding(CvPoint3D32f point);
 
     //Ui::MainWindow *ui;
     VideoCapture capLeft, capRight;
@@ -82,13 +90,13 @@ private:
     BgSubtractor *bgLeft, *bgRight;
     NNTracker *trackLeft, *trackRight;
     Reconstruct *reconstruct;
+    TrajPredict *trajPredict;
 
     QImage imageLeft, imageRight;
     QTimer *timer;
 
-    bool firstPoint;
-    float velocityZ;
-    CvPoint3D32f lastPoint;
+    BallProps ballProps;
+    int no_track_cnt;
 
     void retranslateUi();
 };
