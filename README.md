@@ -4,6 +4,7 @@ GUI for the tabletennis program, written in Qt.
 ## Prerequisite
 
 - `libbgsubtract.so` from [TableTennis](https://github.com/BrotherJing/TableTennis)
+- `librec3d.so` from [TableTennis](https://github.com/BrotherJing/TableTennis)
 - `libtracker.so` from [CNN_tabletennis](https://github.com/BrotherJing/CNN_tabletennis)
 - `libtrajpred.so` from [RNN_tabletennis](https://github.com/BrotherJing/RNN_tabletennis)
 
@@ -19,3 +20,7 @@ make
 ```
 
 Run `./tracking -h` for help.
+
+## Screenshots
+
+![gui](http://7xrcar.com1.z0.glb.clouddn.com/gui2.png)
