@@ -30,6 +30,8 @@
 #include "pingpongtablearea.h"
 #include "ballprops.h"
 
+//#define TIMING
+
 using namespace cv;
 
 namespace Ui {
@@ -47,6 +49,7 @@ public:
     QHBoxLayout *horizontalLayout;
     QLabel *label;
     QLabel *label_2;
+    QLabel *label_3;
     QHBoxLayout *horizontalLayout_2;
     QPushButton *playButton;
     QPushButton *pauseButton;
@@ -97,6 +100,10 @@ private:
 
     BallProps ballProps;
     int no_track_cnt;
+
+    //for recording
+    int track_no;
+    float distance(CvPoint3D32f a, CvPoint3D32f b);
 
     void retranslateUi();
 };

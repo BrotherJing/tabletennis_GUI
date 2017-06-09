@@ -2,6 +2,7 @@
 #include "pingpongtablearea.h"
 
 #include <opencv2/opencv.hpp>
+#include <cmath>
 
 #include "Codebook.h"
 #include "Reconstruct.h"
@@ -21,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     trackLeft(NULL),
     trackRight(NULL),
     no_track_cnt(MAX_NO_TRACK_CNT),
+    track_no(0),
     reconstruct(NULL)
 {
     if (objectName().isEmpty())
@@ -108,6 +110,14 @@ MainWindow::MainWindow(QWidget *parent) :
     horizontalLayout_4->setSpacing(6);
     horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
 
+    label_3 = new QLabel(widget);
+    label_3->setObjectName(QStringLiteral("label_3"));
+    sizePolicy1.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
+    label_3->setSizePolicy(sizePolicy1);
+    label_3->setMinimumSize(QSize(200, 200));
+    label_3->setPalette(palette1);
+    horizontalLayout_4->addWidget(label_3);
+
     verticalLayout->addLayout(horizontalLayout_4);
     table = new PingPongTableArea;
     horizontalLayout_4->addWidget(table);
@@ -131,9 +141,9 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::retranslateUi(){
-    setWindowTitle(QApplication::translate("MainWindow", "MainWindow", Q_NULLPTR));
-    label->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
-    label_2->setText(QApplication::translate("MainWindow", "TextLabel", Q_NULLPTR));
+    setWindowTitle(QApplication::translate("MainWindow", "Table Tennis", Q_NULLPTR));
+    label->setText(QApplication::translate("MainWindow", "", Q_NULLPTR));
+    label_2->setText(QApplication::translate("MainWindow", "", Q_NULLPTR));
     playButton->setText(QApplication::translate("MainWindow", "Play", Q_NULLPTR));
     pauseButton->setText(QApplication::translate("MainWindow", "Pause", Q_NULLPTR));
 }
@@ -181,8 +191,12 @@ void MainWindow::initTracker(Classifier &classifier){
     }
     trackLeft = new NNTracker(classifier);
     trackRight = new NNTracker(classifier);
-    trackLeft->setProbThresh(0.4f);
-    trackRight->setProbThresh(0.4f);
+    trackLeft->setProbThresh(0.7f);
+    trackRight->setProbThresh(0.7f);
+    trackLeft->setProposalRange(temp.size().width/8);
+    trackRight->setProposalRange(temp.size().width/8);
+    trackLeft->setMaxProposals(4);
+    trackRight->setMaxProposals(4);
 }
 
 void MainWindow::loadTrajPredict(const string graph){
@@ -191,7 +205,8 @@ void MainWindow::loadTrajPredict(const string graph){
 
 bool MainWindow::_track(cv::Mat frame, bool left, Point *pt, bool draw){
     cv::resize(frame, temp, temp.size());
-    cvtColor(temp, temp2, CV_BGR2YCrCb);
+    cvtColor(temp, temp, CV_BGR2RGB);
+    cvtColor(temp, temp2, CV_RGB2YCrCb);
     bool success;
     float prob;
     Rect bbox;
@@ -208,6 +223,7 @@ bool MainWindow::_track(cv::Mat frame, bool left, Point *pt, bool draw){
             rectangle(temp, bbox, CV_RGB(0x00, 0xff, 0x00), 4);
         }
     }
+#ifndef TIMING
     if(left){
         imageLeft = Mat2QImage(temp);
         label->setPixmap(QPixmap::fromImage(imageLeft));
@@ -215,6 +231,7 @@ bool MainWindow::_track(cv::Mat frame, bool left, Point *pt, bool draw){
         imageRight = Mat2QImage(temp);
         label_2->setPixmap(QPixmap::fromImage(imageRight));
     }
+#endif
     return success;
 }
 
@@ -226,10 +243,20 @@ void MainWindow::nextFrame(){
     if(frameLeft.empty() || frameRight.empty()){
         return;
     }
-
+#ifdef TIMING
+    struct timeval t1,t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
+#endif
     found = _track(frameLeft, true, &left);
     found &= _track(frameRight, false, &right);
+#ifdef TIMING
+    gettimeofday(&t2,NULL);
+    timeuse = (t2.tv_sec - t1.tv_sec)*1000.0 + (t2.tv_usec - t1.tv_usec)/1000.0;
+    printf("Track Use Time:%fms\n",timeuse);
 
+    gettimeofday(&t1,NULL);
+#endif
     if(found){
         no_track_cnt = 0;
         CvPoint3D32f coord_world = reconstruct->uv2xyz(left, right);
@@ -238,31 +265,58 @@ void MainWindow::nextFrame(){
         ballProps.feed(coord_world);
         if(ballProps.isRebound()){
             table->setLandingPoint(ballProps.lastPoint());
+            //std::cout<<ballProps.lastPoint().x<<' '<<ballProps.lastPoint().y<<std::endl;
         }
         if(ballProps.crossHalfCourt()){
-            std::cout<<"try to predict landing point"<<std::endl;
+            //std::cout<<"try to predict landing point"<<std::endl;
             table->setPredictLandingPoint(_sampleUntilLanding(coord_world));
         }
+        if(ballProps.is_hit){
+            //std::cout<<"hit!"<<std::endl;
+            trajPredict->clearState();
+            track_no++;
+        }
+        ballProps.setPredictPoint(trajPredict->sample1(coord_world));
+        //std::cout<<track_no<<" 0 "<<coord_world.x<<' '<<coord_world.y<<' '<<coord_world.z<<std::endl;
     }else{
         no_track_cnt++;
         if(no_track_cnt>MAX_NO_TRACK_CNT){
             ballProps.clearState();
             trajPredict->clearState();
+            track_no++;
         }else{
-            ballProps.feed(trajPredict->sample1(ballProps.lastPoint()));
+            if(ballProps.has_predict_point){
+                ballProps.feed(ballProps.predictPoint());
+            }
+            ballProps.setPredictPoint(trajPredict->sample1(ballProps.lastPoint()));
+            //std::cout<<track_no<<" 0 "<<ballProps.lastPoint().x<<' '<<ballProps.lastPoint().y<<' '<<ballProps.lastPoint().z<<std::endl;
         }
     }
+#ifdef TIMING
+    gettimeofday(&t2,NULL);
+    timeuse = (t2.tv_sec - t1.tv_sec)*1000.0 + (t2.tv_usec - t1.tv_usec)/1000.0;
+    printf("Predict Use Time:%fms\n",timeuse);
+#endif
+    char str_velocity[50];
+    sprintf(str_velocity, "X:%4.2f\nY:%4.2f\nZ:%4.2f", ballProps.velocityX, ballProps.velocityY, ballProps.velocityZ);
+    label_3->setText(QApplication::translate("MainWindow", str_velocity, Q_NULLPTR));
 }
 
 CvPoint3D32f MainWindow::_sampleUntilLanding(CvPoint3D32f point){
-    //TODO:save and restore state
     BallProps tempProps;
     tempProps.feed(point);
+    trajPredict->saveState();
     while(!tempProps.isRebound()){
         tempProps.feed(trajPredict->sample1(tempProps.lastPoint()));
+        //std::cout<<track_no<<" 1 "<<tempProps.lastPoint().x<<' '<<tempProps.lastPoint().y<<' '<<tempProps.lastPoint().z<<std::endl;
     }
-    std::cout<<"predict landing point: ("<<tempProps.lastPoint().x<<", "<<tempProps.lastPoint().y<<")"<<std::endl;
+    trajPredict->restoreState();
+    //std::cout<<"predict landing point: ("<<tempProps.lastPoint().x<<", "<<tempProps.lastPoint().y<<")"<<std::endl;
     return tempProps.lastPoint();
+}
+
+float MainWindow::distance(CvPoint3D32f a, CvPoint3D32f b){
+    return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z));
 }
 
 void MainWindow::on_playButton_clicked()
@@ -276,7 +330,7 @@ void MainWindow::on_playButton_clicked()
         label->setPixmap(QPixmap::fromImage(imageLeft));
         label_2->setPixmap(QPixmap::fromImage(imageRight));
         timer = new QTimer(this);
-        //timer->setInterval(1000/rate);
+        //timer->setInterval(1000/4);
         connect(timer, SIGNAL(timeout()), this, SLOT(nextFrame()));
         timer->start();
     }

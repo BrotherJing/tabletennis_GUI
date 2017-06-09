@@ -1,5 +1,7 @@
 #include "ballprops.h"
-#include "pingpongtablearea.h"
+
+const int BallProps::ORIGIN_HEIGHT = 1525;
+const int BallProps::ORIGIN_WIDTH = 2740;
 
 BallProps::BallProps()
 {
@@ -10,6 +12,8 @@ void BallProps::clearState(){
     is_first_point = true;
     is_rebound = false;
     is_crossing_half_court = false;
+    has_predict_point = false;
+    is_hit = false;
     velocityX = 0;
     velocityY = 0;
     velocityZ = 0;
@@ -32,6 +36,8 @@ void BallProps::feed(CvPoint3D32f point){
         is_first_point = false;
         last_point = point;
         velocityZ = 0;
+        velocityY = 0;
+        velocityX = 0;
     } else {
         float velocityZ_new = point.z - last_point.z;
         if(velocityZ<0&&velocityZ_new>0){
@@ -40,12 +46,33 @@ void BallProps::feed(CvPoint3D32f point){
             is_rebound = false;
         }
         velocityZ = velocityZ_new;
+        float velocityY_new = point.y - last_point.y;
+        if(velocityY_new*velocityY<0){
+            is_hit = true;
+        }else{
+            is_hit = false;
+        }
+        velocityY = velocityY_new;
+        velocityX = point.x - last_point.x;
 
-        if((last_point.y-PingPongTableArea::ORIGIN_WIDTH/2)*(point.y-PingPongTableArea::ORIGIN_WIDTH/2)<0){
+        if((last_point.y-ORIGIN_WIDTH/2)*(point.y-ORIGIN_WIDTH/2)<0){
             is_crossing_half_court = true;
         }else{
             is_crossing_half_court = false;
         }
         last_point = point;
     }
+}
+
+CvPoint3D32f BallProps::predictPoint(){
+    return predict_point;
+}
+
+CvPoint3D32f BallProps::predictLandingPoint(){
+    return predict_landing_point;
+}
+
+void BallProps::setPredictPoint(CvPoint3D32f point){
+    has_predict_point = true;
+    predict_landing_point = point;
 }

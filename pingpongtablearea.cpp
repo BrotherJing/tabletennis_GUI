@@ -58,8 +58,8 @@ void PingPongTableArea::setCurrentPoint(QPoint point){
 }
 
 void PingPongTableArea::setCurrentPoint(CvPoint3D32f point){
-    int x = point.y/SCALE;
-    int y = (ORIGIN_HEIGHT - point.x)/SCALE;
+    int x = (point.y)/SCALE;
+    int y = (point.x)/SCALE;
     setCurrentPoint(QPoint(x,y));
 }
 
@@ -70,14 +70,14 @@ void PingPongTableArea::setLandingPoint(QPoint point){
 }
 
 void PingPongTableArea::setLandingPoint(CvPoint3D32f point){
-    int x = point.y/SCALE;
-    int y = (ORIGIN_HEIGHT - point.x)/SCALE;
+    int x = (point.y)/SCALE;
+    int y = (point.x)/SCALE;
     setLandingPoint(QPoint(x,y));
 }
 
 void PingPongTableArea::setPredictLandingPoint(CvPoint3D32f point){
-    int x = point.y/SCALE;
-    int y = (ORIGIN_HEIGHT - point.x)/SCALE;
+    int x = (point.y)/SCALE;
+    int y = (point.x)/SCALE;
     predictLandingPoint = QPoint(x,y);
     update();
 }

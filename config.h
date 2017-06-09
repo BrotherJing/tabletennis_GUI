@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-const int SCALE = 2;
+const int SCALE = 1;
 #define CHANNELS 3
 
 const int TRAIN_BG_MODEL_ITER = 50;
