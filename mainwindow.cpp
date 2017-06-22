@@ -15,6 +15,8 @@ using namespace cv;
 
 const int MainWindow::SCALE = 2;
 const int MainWindow::MAX_NO_TRACK_CNT = 10;
+const int MainWindow::TRACK_MAX_PROPOSALS = 8;
+const int MainWindow::MAX_PREDICT_LENGTH = 50;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -180,8 +182,8 @@ void MainWindow::openVideo(const char *leftFilename, const char *rightFilename){
     szSmall.height = szSmall.height/SCALE;
     temp = Mat(szSmall, frameLeft.type());
     temp2 = Mat(szSmall, frameLeft.type());
-    bgLeft = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
-    bgRight = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
+    bgLeft = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, TRACK_MAX_PROPOSALS);
+    bgRight = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, TRACK_MAX_PROPOSALS);
 }
 
 void MainWindow::initTracker(Classifier &classifier){
@@ -193,10 +195,10 @@ void MainWindow::initTracker(Classifier &classifier){
     trackRight = new NNTracker(classifier);
     trackLeft->setProbThresh(0.7f);
     trackRight->setProbThresh(0.7f);
-    trackLeft->setProposalRange(temp.size().width/8);
-    trackRight->setProposalRange(temp.size().width/8);
-    trackLeft->setMaxProposals(4);
-    trackRight->setMaxProposals(4);
+    trackLeft->setProposalRange(temp.size().width/12);
+    trackRight->setProposalRange(temp.size().width/12);
+    trackLeft->setMaxProposals(TRACK_MAX_PROPOSALS);
+    trackRight->setMaxProposals(TRACK_MAX_PROPOSALS);
 }
 
 void MainWindow::loadTrajPredict(const string graph){
@@ -268,7 +270,7 @@ void MainWindow::nextFrame(){
             //std::cout<<ballProps.lastPoint().x<<' '<<ballProps.lastPoint().y<<std::endl;
         }
         if(ballProps.crossHalfCourt()){
-            //std::cout<<"try to predict landing point"<<std::endl;
+            std::cout<<"try to predict landing point"<<std::endl;
             table->setPredictLandingPoint(_sampleUntilLanding(coord_world));
         }
         if(ballProps.is_hit){
@@ -306,8 +308,10 @@ CvPoint3D32f MainWindow::_sampleUntilLanding(CvPoint3D32f point){
     BallProps tempProps;
     tempProps.feed(point);
     trajPredict->saveState();
-    while(!tempProps.isRebound()){
+    int cnt = 0;
+    while(!tempProps.isRebound() && cnt<MAX_PREDICT_LENGTH){
         tempProps.feed(trajPredict->sample1(tempProps.lastPoint()));
+        cnt++;
         //std::cout<<track_no<<" 1 "<<tempProps.lastPoint().x<<' '<<tempProps.lastPoint().y<<' '<<tempProps.lastPoint().z<<std::endl;
     }
     trajPredict->restoreState();

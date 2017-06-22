@@ -1,3 +1,0 @@
-/home/jing/Documents/QtProjects/tracking/test/build/CMakeFiles/edit_cache.dir
-/home/jing/Documents/QtProjects/tracking/test/build/CMakeFiles/rebuild_cache.dir
-/home/jing/Documents/QtProjects/tracking/test/build/CMakeFiles/test.dir

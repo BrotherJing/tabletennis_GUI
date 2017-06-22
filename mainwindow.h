@@ -81,6 +81,8 @@ private slots:
 private:
     static const int SCALE;
     static const int MAX_NO_TRACK_CNT;
+    static const int TRACK_MAX_PROPOSALS;
+    static const int MAX_PREDICT_LENGTH;
 
     bool _track(cv::Mat frame, bool left, Point *pt, bool draw=true);
     CvPoint3D32f _sampleUntilLanding(CvPoint3D32f point);

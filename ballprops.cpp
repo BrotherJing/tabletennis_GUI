@@ -40,7 +40,7 @@ void BallProps::feed(CvPoint3D32f point){
         velocityX = 0;
     } else {
         float velocityZ_new = point.z - last_point.z;
-        if(velocityZ<0&&velocityZ_new>0){
+        if(velocityZ<0&&velocityZ_new>0&&point.z<100){
             is_rebound = true;
         }else{
             is_rebound = false;
@@ -74,5 +74,10 @@ CvPoint3D32f BallProps::predictLandingPoint(){
 
 void BallProps::setPredictPoint(CvPoint3D32f point){
     has_predict_point = true;
+    predict_point = point;
+}
+
+
+void BallProps::setPredictLandingPoint(CvPoint3D32f point){
     predict_landing_point = point;
 }

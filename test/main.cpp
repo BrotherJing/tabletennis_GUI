@@ -83,7 +83,7 @@ bool _track(cv::Mat frame, bool left, Point *pt, BgSubtractor *bg, NNTracker *tr
 	success = bg->process(temp2) &&
         track->track_vec(temp, bg->bboxes_vec, &prob, &bbox);
     if(success){
-	    //stitchImages(track->patches, stitchDisplay, track->bboxes, track->probs, track->num_patches);
+	    stitchImages(track->patches, stitchDisplay, track->bboxes, track->probs, track->num_patches);
 	    if(left){
 	    	imshow("score", stitchDisplay);
 	    }else if(double_view){
@@ -134,12 +134,12 @@ int main(int argc, char **argv){
     temp = Mat(szSmall, frame.type());
     temp2 = Mat(szSmall, frame.type());
     stitchDisplay = Mat(cvSize((sqrt(TRACK_MAX_PROPOSALS)+1)*PATCH_WIDTH, (sqrt(TRACK_MAX_PROPOSALS)+1)*PATCH_HEIGHT), frame.type());
-    bg = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
+    bg = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, TRACK_MAX_PROPOSALS);
 
     track = new NNTracker(classifier);
     track->setProbThresh(0.6f);
     track->setProposalRange(szSmall.width/4);
-    track->setMaxProposals(4);
+    track->setMaxProposals(TRACK_MAX_PROPOSALS);
 
     if(argc>5){
     	capture2.open(argv[5]);
@@ -150,11 +150,11 @@ int main(int argc, char **argv){
 	    	double_view = true;
 			namedWindow("display2", WINDOW_AUTOSIZE);
 			namedWindow("score2", WINDOW_AUTOSIZE);
-	    	bg2 = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, 4);
+	    	bg2 = new BgSubtractor(szSmall, TRAIN_BG_MODEL_ITER, TRACK_MAX_PROPOSALS);
 	    	track2 = new NNTracker(classifier);
 		    track2->setProbThresh(0.6f);
 		    track2->setProposalRange(szSmall.width/4);
-    		track2->setMaxProposals(4);
+    		track2->setMaxProposals(TRACK_MAX_PROPOSALS);
 		    reconstruct = new Reconstruct(string(argv[6]));
 		    trajPredict = new TrajPredict(string(argv[7]));
 	    }
@@ -172,15 +172,17 @@ int main(int argc, char **argv){
 	    	if(frame2.empty())break;
 	    	success &= _track(frame2, false, &right, bg2, track2);
 	    	if(ballProps.has_predict_point){
+	    		cout<<ballProps.predictPoint().x<<' '<<ballProps.predictPoint().y<<' '<<ballProps.predictPoint().z<<endl;
 	    		Point pred_left = reconstruct->xyz2uv(ballProps.predictPoint(), true);
 	    		Point pred_right = reconstruct->xyz2uv(ballProps.predictPoint(), false);
 	    		//TODO: draw predict point on 2d frames
-	    		circle(display, pred_left, 2, CV_RGB(0x00, 0xff, 0xff));
-	    		circle(display2, pred_right, 2, CV_RGB(0x00, 0xff, 0xff));
+	    		circle(display, pred_left, 20, CV_RGB(0x00, 0xff, 0xff));
+	    		circle(display2, pred_right, 20, CV_RGB(0x00, 0xff, 0xff));
 	    	}
 	    	if(success){
 		        no_track_cnt = 0;
 		        CvPoint3D32f coord_world = reconstruct->uv2xyz(left, right);
+	    		cout<<coord_world.x<<' '<<coord_world.y<<' '<<coord_world.z<<endl;
 		        ballProps.feed(coord_world);
 		        if(ballProps.isRebound()){
 		            //table->setLandingPoint(ballProps.lastPoint());
@@ -215,6 +217,7 @@ int main(int argc, char **argv){
 	    imshow("display", display);
 	    char c = cvWaitKey(20);
 	    if(c==27)break;
+	    else if(c==32)cvWaitKey(0);
     }
     velocity.close();
 	return 0;

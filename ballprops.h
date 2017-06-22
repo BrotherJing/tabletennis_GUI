@@ -11,6 +11,7 @@ public:
     BallProps();
     void feed(CvPoint3D32f point);
     void setPredictPoint(CvPoint3D32f point);
+    void setPredictLandingPoint(CvPoint3D32f point);
     void clearState();
     bool isRebound();
     bool crossHalfCourt();
