@@ -23,4 +23,4 @@ Run `./tracking -h` for help.
 
 ## Screenshots
 
-![gui](http://7xrcar.com1.z0.glb.clouddn.com/gui2.png)
+![gui](https://brotherjing-static.s3-ap-northeast-1.amazonaws.com/img/gui2.png)
